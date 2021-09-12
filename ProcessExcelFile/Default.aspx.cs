@@ -7,8 +7,12 @@ using System.Web.UI.WebControls;
 using ClosedXML;
 using ClosedXML.Excel;
 using System.IO;
+using System.Data;
+
 namespace ProcessExcelFile {
     public partial class _Default : Page {
+       
+
         protected void Page_Load(object sender, EventArgs e) {
 
         }
@@ -47,6 +51,76 @@ namespace ProcessExcelFile {
             } catch (Exception exp) { 
                 throw exp; 
             }
+        }
+
+        private List<MenuParent> getMenuParentData(string csvFilePath) {
+            List<MenuParent> lstMenuPArent = new List<MenuParent>();
+            try {
+                if (File.Exists(csvFilePath)) {
+                    using (StreamReader reader = new StreamReader(csvFilePath)) {
+                        string csvContent = reader.ReadToEnd();
+
+                        string[] lines = csvContent.Split('\n');
+                        for (int i = 1; i < lines.Length; i++) {
+                            string[] dataContent = lines[i].Split(',');
+                            MenuParent menuParent = new MenuParent();
+                            menuParent.MenuID = Convert.ToInt16(dataContent[0]);
+                            dataContent[1] = dataContent[1].Replace("\r", "");
+                            menuParent.ParentID = Convert.ToInt16(dataContent[1]);
+                            lstMenuPArent.Add(menuParent);
+                        }
+                    }
+                }
+            } catch (Exception exp) {
+                throw exp;
+            }
+            return lstMenuPArent;
+        }
+
+        protected void btnFindParent_Click(object sender, EventArgs e) {
+            string csvFilePath = Server.MapPath("~/ExcelFiles/MenuParent.csv"); 
+            var menuList = getMenuParentData(csvFilePath);
+
+            var parents = getParents(13, ref menuList);
+
+            LinkedList<MenuParent> menuParentList = getParentsLinkedList(23,ref menuList);
+
+            for (int i = menuParentList.Count-1; i > 0; i--) {
+                Response.Write(menuParentList.ElementAt(i).MenuID + " -> " + menuParentList.ElementAt(i).ParentID +" -> ");
+            }
+            
+        }
+        public LinkedList<MenuParent> getParentsLinkedList(int menuID, ref List<MenuParent> menuParents) {
+            LinkedList<MenuParent> menuParentList = new LinkedList<MenuParent>();
+            var parentId = menuParents.Where(c => c.MenuID == menuID).FirstOrDefault().ParentID;
+            var parentMenu = menuParents.Where(c => c.MenuID == parentId).First();
+            while (parentId != 1) {
+                 var parent = menuParents.Where(c => c.MenuID == parentId).First();
+                menuParentList.AddFirst(parent);
+                parentId = parent.ParentID;
+            }
+            return menuParentList;
+        }
+
+
+        public List<int> getParents(int menuID, ref List<MenuParent> menuParents) {
+            List<int> parents = new List<int>();
+            var menu = menuParents.Where(c => c.MenuID == menuID).FirstOrDefault();
+            var parent = menu.ParentID;
+            parents.Add(parent);
+            while (parent != 1) {
+                parent = menuParents.Where(c => c.MenuID == parent).Select(c => c.ParentID).First();
+                parents.Add(parent);
+            }
+            return parents;
+        }
+
+
+        public class MenuParent {
+            public int MenuID { get; set; }
+            public int ParentID { get; set; }
+
+            
         }
     }
 }
