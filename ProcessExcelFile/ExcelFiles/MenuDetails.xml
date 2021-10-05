@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Root>
+  <Menu menuid="1" menutext="Routine Tankering">
+    <Menu menuid="2" menutext="Reports">
+      <Menu menuid="6" menutext="Jobs">
+        <Menu menuid="5" menutext="Jobs Reports">
+          <Resources>
+            <Resource resourceid="45" resourcename="Sludge_Int_Read_JobReports"></Resource>
+            <Resource resourceid="1" resourcename="Sludge_Int_Read_RoutineTankering"></Resource>
+          </Resources>
+        </Menu>
+        <Resources>
+          <Resource resourceid="4" resourcename="Sludge_Int_Read_Reports"></Resource>
+          <Resource resourceid="1" resourcename="Sludge_Int_Read_RoutineTankering"></Resource>
+        </Resources>
+      </Menu>
+      <Resources>
+        <Resource resourceid="4" resourcename="Sludge_Int_Read_Reports"></Resource>
+        <Resource resourceid="1" resourcename="Sludge_Int_Read_RoutineTankering"></Resource>
+      </Resources>
+    </Menu>
+    <Menu menuid="3" menutext="Site">
+      <Resources>
+        <Resource resourceid="5" resourcename="Sludge_Int_Read_Site"></Resource>
+        <Resource resourceid="1" resourcename="Sludge_Int_Read_RoutineTankering"></Resource>
+      </Resources>
+    </Menu>
+    <Resources>
+      <Resource resourceid="1" resourcename="Sludge_Int_Read_RoutineTankering"></Resource>
+    </Resources>
+  </Menu>
+</Root>
+

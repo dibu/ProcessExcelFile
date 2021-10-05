@@ -8,6 +8,7 @@ using ClosedXML;
 using ClosedXML.Excel;
 using System.IO;
 using System.Data;
+using System.Xml;
 
 namespace ProcessExcelFile {
     public partial class _Default : Page {
@@ -86,7 +87,7 @@ namespace ProcessExcelFile {
             LinkedList<MenuParent> menuParentList = getParentsLinkedList(23,ref menuList);
 
             for (int i = menuParentList.Count-1; i > 0; i--) {
-                Response.Write(menuParentList.ElementAt(i).MenuID + " -> " + menuParentList.ElementAt(i).ParentID +" -> ");
+                Response.Write("["+ menuParentList.ElementAt(i).MenuID + "|" + menuParentList.ElementAt(i).ParentID +"] -> ");
             }
             
         }
@@ -121,6 +122,70 @@ namespace ProcessExcelFile {
             public int ParentID { get; set; }
 
             
+        }
+
+        protected void btnProxessXML_Click(object sender, EventArgs e) {
+            string xmlFilePath = Server.MapPath("~/ExcelFiles/MenuDetails.xml");
+            DataTable menuResource = new DataTable();
+            menuResource.Columns.Add("menuid", typeof(string));
+            menuResource.Columns.Add("menutext", typeof(string));
+            menuResource.Columns.Add("resourcename", typeof(string));
+            XmlDocument doc = new XmlDocument();
+            doc.Load(xmlFilePath);
+
+            XmlElement node = doc.SelectNodes("/Root/Menu[@menuid='1']")[0] as XmlElement;
+
+            string menuId = node.GetAttribute("menuid");
+            string menutext = node.GetAttribute("menutext");
+            var resources = node.GetElementsByTagName("Resources")[0];
+            List<string> resourceNames = new List<string>();
+            if (resources != null) {
+                foreach (XmlElement res in resources.ChildNodes) {
+                    string resourceName = res.GetAttribute("resourcename");
+                    resourceNames.Add(resourceName);
+                }
+            }
+
+            /* add self attributes */
+
+            DataRow newRow = menuResource.NewRow();
+            newRow["menuid"] = menuId;
+            newRow["menutext"] = menutext;
+            newRow["resourcename"] = string.Join("|", resourceNames.ToArray());
+            menuResource.Rows.Add(newRow);
+
+            GetMenuResource(node, ref menuResource);
+
+            DataTable dt = menuResource;
+        }
+
+        private void GetMenuResource(XmlElement node, ref DataTable dataTable) {
+            foreach (XmlElement child in node.ChildNodes) {
+                string menuId = child.GetAttribute("menuid");
+                string menutext = child.GetAttribute("menutext");
+                var resources = child.GetElementsByTagName("Resources")[0];
+                List<string> resourceNames = new List<string>();
+                if (resources != null) {
+                    foreach (XmlElement res in resources.ChildNodes) {
+                        string resourceName = res.GetAttribute("resourcename");
+                        resourceNames.Add(resourceName);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(menuId)) {
+                    DataRow newRow = dataTable.NewRow();
+                    newRow["menuid"] = menuId;
+                    newRow["menutext"] = menutext;
+                    newRow["resourcename"] = string.Join("|", resourceNames.ToArray());
+                    dataTable.Rows.Add(newRow);
+
+                    var menuList = child.GetElementsByTagName("Menu");
+                    if (menuList.Count > 0) {
+                        GetMenuResource(child, ref dataTable);
+                    }
+                }
+
+            }
         }
     }
 }
